@@ -2,7 +2,7 @@
 		background:#ffffff;
 	}
 	#debug1 {
-		display:none;
+		display:block;
 	}
 	.js-mindmap .node {
 		position:absolute;
@@ -12,12 +12,16 @@
 		font-size:11px;
 		color:#003258;
 		background:#C1D1E0;
+        opacity:0.9;
 		padding:15px;
+		border:1px solid #A1B1D0;
+		-webkit-border-radius:10px;
 		-moz-border-radius:3px;
 		cursor:pointer;
 		cursor:hand;
 		z-index:100;
 		list-style:none;
+        width:100px;
 	}
 	.js-mindmap .node  a{
 		color:#003258;
@@ -40,3 +44,6 @@
 		display:block;
 		z-index:0;
 	}
+    .ui-draggable {
+        position:absolute;
+    }

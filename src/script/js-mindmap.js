@@ -1,9 +1,7 @@
 // js-mindmap
 // (c) Copyright Kenneth Kufluk 2008
 // Digitas London
-
-//requires MooTools
-//requires excanvas
+// requires jQuery and canvas-supporting browser
 
 var timeperiod = 10;
 var damping = 0.55;
@@ -12,32 +10,36 @@ var attract = 6;
 var wallrepulse = 0.2;
 var updateDisplayAfterNthIteration = 20;
 var activeNode = null;
-var mapArea = {x:900, y:600};
+var mapArea = {x:1200, y:800};
 var minSpeed = 0.05;
 var maxForce = 0.1;
 
 var showSublines = true;
 
-function SpiderNode(index, el, parent, active) {
-	this.el = el;
-	this.el.spiderObj = this;
+function MindMapNode(index, el, parent, active) {
+	this.el = jQuery(el);
+	this.el.mindMapObj = this;
 //			this.originalPos = this.el.getPosition();
 	if (active) {
 		activeNode = this;
-		$(this.el).addClass('active');
+		jQuery(this.el).addClass('active');
 	}
 	this.parent = parent;
-	$(this.el).addClass('node');
+	this.el.addClass('node');
 	this.index = index;
 	this.visible = true;
 	this.hasLayout = true; 
 	this.x = Math.random()+(mapArea.x/2);
 	this.y = Math.random()+(mapArea.y/2);
-	this.el.style.left = this.x + "px";
-	this.el.style.top = this.y + "px";
+
+	this.el.css('left', this.x + "px");
+	this.el.css('top', this.y + "px");
 	this.dx = 0;
 	this.dy = 0;
 	this.count = 0;
+    this.el.draggable();
+    this.el.css('position','absolute');
+    /*
 	var myDragInstance = new Drag(this.el,
 		{
 			snap: 1,
@@ -49,31 +51,32 @@ function SpiderNode(index, el, parent, active) {
 			}
 		}
 	);
-	if (this.el.childNodes[0].tagName=='A') {
-		this.el.href = this.el.childNodes[0].href;
-	}
-	this.el.onclick = function() {
-		if (activeNode) activeNode.el.removeClass('active');
-		activeNode = this.spiderObj;
-		activeNode.el.addClass('active');
-		return false;
-	}
-	this.el.ondblclick = function() {
-		location.href=this.href;
-		return false;
-	}
+    */
+//	if (this.el.children().eq(0).tagName=='A') {
+//		this.el.href = this.el.childNodes[0].href;
+//	}
+//	this.el.onclick = function() {
+//		if (activeNode) activeNode.el.removeClass('active');
+//		activeNode = this.mindMapObj;
+//		activeNode.el.addClass('active');
+//		return false;
+//	}
+//	this.el.ondblclick = function() {
+//		location.href=this.href;
+//		return false;
+//	}
 }
-SpiderNode.prototype.normalizePosition = function() {
+MindMapNode.prototype.normalizePosition = function() {
 	//move node to root (outside of parental positioning)
 	if (this.parent!=null) {
-		$$('#js-mindmap>ul')[1].appendChild(this.el);
+		$('#js-mindmap>ul:eq(1)').append(this.el);
 	}
 }
 // TODO WRITE METHOD
-SpiderNode.prototype.layOutChildren = function() {
+MindMapNode.prototype.layOutChildren = function() {
 	//show my child nodes in an equally spaced group around myself, instead of placing them randomly
 }
-SpiderNode.prototype.getForceVector = function() {
+MindMapNode.prototype.getForceVector = function() {
 	// for each item in nodes, calculate the force
 	// repulsive force is proportional to 1/distance
 	var fx = 0;
@@ -86,30 +89,20 @@ SpiderNode.prototype.getForceVector = function() {
 		var y1 = (nodes[i].y - this.y);
 //				$('debug1').innerHTML = x1;
 		//adjust for variable node size
-		var nodewidths = ((nodes[i].el.getSize().x + this.el.getSize().x)/2)
-
-/*
-		if (x1<0) {
-			if (Math.abs(x1)<nodewidths) x1=0.01;
-				else x1 = x1 + nodewidths;
-		} else {
-			if (Math.abs(x1)<nodewidths) x1=0.01;
-				else x1 = x1 - nodewidths;
-		}
-*/
+//		var nodewidths = ((jQuery(nodes[i]).width() + jQuery(this.el).width())/2);
 
 		var xsign = x1/Math.abs(x1);
 		var ysign = y1/Math.abs(y1);
 		var dist = Math.sqrt((x1*x1) + (y1*y1));
-//		x1 = x1 + (xsign*((nodes[i].el.getSize().x + this.el.getSize().x)/2));
-//		y1 = y1 + (ysign*((nodes[i].el.getSize().y + this.el.getSize().y)/2));
 		var theta = Math.atan(y1/x1);
 		if (x1==0) {
 			theta = Math.PI/2;
 			xsign = 0;
 		}
 		// force is based on radial distance
-		var f = (repulse*500)/(dist*dist);
+        var myrepulse = repulse;
+        if (this.parent==nodes[i]) myrepulse=myrepulse*10;
+		var f = (myrepulse*500)/(dist*dist);
 		if (Math.abs(dist)<500) {
 			fx += -f * Math.cos(theta)*xsign;
 			fy += -f * Math.sin(theta)*xsign;
@@ -117,7 +110,7 @@ SpiderNode.prototype.getForceVector = function() {
 	}
 	// add repulsive force of the "walls"
 	//left wall
-	var xdist = this.x+this.el.getSize().x;
+	var xdist = this.x+jQuery(this.el).width();
 	var f = (wallrepulse*500)/(xdist*xdist);
 	fx += Math.min(2, f);
 	//right wall
@@ -165,7 +158,7 @@ SpiderNode.prototype.getForceVector = function() {
 		// Attractive force (hooke's law)
 		var otherend = mapArea;
 		var x1 = ((otherend.x/2) - 100 - this.x);
-		var y1 = ((otherend.y/2) - this.y);
+		var y1 = -100;//((otherend.y/2) - this.y);
 		var dist = Math.sqrt(x1*x1 + y1*y1);
 		var xsign = x1/Math.abs(x1);
 		var theta = Math.atan(y1/x1);
@@ -174,7 +167,7 @@ SpiderNode.prototype.getForceVector = function() {
 			xsign = 0;
 		}
 		// force is based on radial distance
-		var f = (0.1*attract*dist)/10000;
+		var f = (0.1*attract*dist)/1000;
 		if (Math.abs(dist)>0) {
 			fx += f * Math.cos(theta)*xsign;
 			fy += f * Math.sin(theta)*xsign;
@@ -183,19 +176,19 @@ SpiderNode.prototype.getForceVector = function() {
 	}
 	
 	//	$('debug1').innerHTML = dist;
+    fy+=0.001;
 	if (Math.abs(fx) > maxForce) fx = maxForce*(fx/Math.abs(fx));
 	if (Math.abs(fy) > maxForce) fy = maxForce*(fy/Math.abs(fy));
 	return {x:fx, y:fy};
 }
-SpiderNode.prototype.getSpeedVector = function() {
+MindMapNode.prototype.getSpeedVector = function() {
 	return {x:this.dx, y:this.dy};
 }
-SpiderNode.prototype.updatePosition = function() {
+MindMapNode.prototype.updatePosition = function() {
 
-
-	if (this.el.hasClass("dragging")) {
-		this.x = parseInt(this.el.style.left);
-		this.y = parseInt(this.el.style.top);
+	if (jQuery(this.el).hasClass("ui-draggable-dragging")) {
+		this.x = parseInt(this.el.css('left')) + (jQuery(this.el).width() / 2);
+		this.y = parseInt(this.el.css('top')) + (jQuery(this.el).height() / 2);
 		this.dx = 0;
 		this.dy = 0;
 		return;
@@ -224,22 +217,23 @@ SpiderNode.prototype.updatePosition = function() {
 	this.count++;
 //			if (this.count<updateDisplayAfterNthIteration) return;
 	// display
-	var showx = this.x - (this.el.getSize().x / 2);
-	var showy = this.y - (this.el.getSize().y / 2);
-	this.el.style.left = showx + "px";
-	this.el.style.top = showy + "px";
+	var showx = this.x - (jQuery(this.el).width() / 2);
+	var showy = this.y - (jQuery(this.el).height() / 2);
+
+	this.el.css('left', showx + "px");
+	this.el.css('top', showy + "px");
 	
 }
 //////////////////////////////////////////////////////
-function SpiderLine(index, startSpiderNode, finSpiderNode) {
+function MindMapLine(index, startMindMapNode, finMindMapNode) {
 	this.index = index;
-	this.start = startSpiderNode;
+	this.start = startMindMapNode;
 	this.colour = "blue";
 	this.size = "thick";
-	this.end = finSpiderNode;
+	this.end = finMindMapNode;
 	this.count=0;
 }
-SpiderLine.prototype.updatePosition = function() {
+MindMapLine.prototype.updatePosition = function() {
 	if (showSublines && (!this.start.hasLayout || !this.end.hasLayout)) return;
 	if (!showSublines && (!this.start.visible || !this.end.visible)) return;
 	if (this.start.visible && this.end.visible) this.size = "thick";
@@ -251,7 +245,7 @@ SpiderLine.prototype.updatePosition = function() {
 			ctx.strokeStyle = "rgb(100, 0, 0)";
 		break;
 		case "blue":
-			ctx.strokeStyle = "rgb(0, 0, 100)";
+			ctx.strokeStyle = "rgba(0, 0, 100, 0.2)";
 		break;
 	}
 	switch (this.size) {
@@ -265,13 +259,14 @@ SpiderLine.prototype.updatePosition = function() {
 	ctx.beginPath();
 	ctx.moveTo(this.start.x, this.start.y);
 	ctx.quadraticCurveTo(((this.start.x + this.end.x)/1.8),((this.start.y + this.end.y)/2.4), this.end.x, this.end.y);
+//	ctx.lineTo(this.end.x, this.end.y);
 	ctx.stroke();
 	ctx.closePath();
 	
 }
 
 //////////////////////////////////////////////////////
-function SpiderLoop() {
+function MindMapLoop() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	//update node positions
 	for (var i=0;i<nodes.length;i++) {
@@ -285,17 +280,17 @@ function SpiderLoop() {
 			nodes[i].visible=true;
 			nodes[i].hasLayout = true;
 		} else {
-			nodes[i].visible=false;
+			nodes[i].visible=true;  ///false
 			if (nodes[i].parent && nodes[i].parent.parent && nodes[i].parent.parent==activeNode) {
 				nodes[i].hasLayout = true;
 			} else {
-				nodes[i].hasLayout = false;
+				nodes[i].hasLayout = true;  //false
 			}
 		}
 		if (nodes[i].visible) {
-			nodes[i].el.style.display="block";
+			nodes[i].el.show();
 		} else {
-			nodes[i].el.style.display="none";
+			nodes[i].el.hide();
 		}
 		if ((showSublines && !nodes[i].hasLayout) || (!showSublines && !nodes[i].visible)) continue;
 		nodes[i].updatePosition();
@@ -313,7 +308,7 @@ function addList(ul, parent) {
 	for (var li=0;li<mylis.length;li++) {
 		if (mylis[li].tagName!='LI') continue;
 		var nodeno = nodes.length;
-		nodes[nodeno] = new SpiderNode(nodeno, mylis[li], parent);
+		nodes[nodeno] = new MindMapNode(nodeno, mylis[li], parent);
 
 		thislist[thislist.length] = nodes[nodeno];
 		var mylicontent = mylis[li].childNodes;
@@ -324,7 +319,7 @@ function addList(ul, parent) {
 
 		if (parent!=null) {
 			var lineno = lines.length;
-			lines[lineno] = new SpiderLine(lineno, nodes[nodeno], parent);
+			lines[lineno] = new MindMapLine(lineno, nodes[nodeno], parent);
 		}
 
 	}
@@ -335,24 +330,26 @@ var nodes = new Array();
 var lines = new Array();
 var activenode=null;
 onload = function() {
-	var myroot = $$('#js-mindmap>a')[0];
 
+	var myroot = $('#js-mindmap>a')[0];
+
+	// I need to flatten the UL for positioning to work
 	// create a misc UL to store flattened nodes
 	var miscUL = document.createElement("UL");
-	$('js-mindmap').appendChild(miscUL);
+	$('#js-mindmap').append(miscUL);
 
 	var nodeno = nodes.length;
-	nodes[nodeno] = new SpiderNode(nodeno, myroot, null, true);
+	nodes[nodeno] = new MindMapNode(nodeno, myroot, null, true);
 
-	var myul = $$('#js-mindmap>ul')[0];
+	var myul = $('#js-mindmap>ul')[0];
 	addList(myul, nodes[nodeno]);
 	for (var i=0;i<nodes.length;i++) {
 		nodes[i].normalizePosition();
 	}
 
-	setInterval(SpiderLoop, 40);
-	
-	$('js-mindmap').addClass('js-mindmap');
+	setInterval(MindMapLoop, 1);
+    
+	$('#js-mindmap').addClass('js-mindmap');
 	
 	//CANVAS
 	canvas = document.getElementById("cv");
