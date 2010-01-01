@@ -14,6 +14,8 @@
 // When activity stops, stop the loop (for performance)
 // Resize event
 
+// Known issue - canvas not appearing in IE...
+
 (function($){
 
     $.fn.mindmap = function(options) {
@@ -283,6 +285,8 @@
         var Loop = function (obj){
             var nodes = obj.nodes;
             var lines = obj.lines;
+            obj.ctx = $('canvas', obj).get(0).getContext("2d");
+
             obj.ctx.clearRect(0, 0, options.mapArea.x, options.mapArea.y);
             //update node positions
             for (var i = 0; i < nodes.length; i++) {
@@ -376,8 +380,6 @@
                 this.canvas = $('<canvas width="'+options.mapArea.x+'" height="'+options.mapArea.y+'" style="position:absolute;left:0;top:0;"></canvas>');
                 //add to document
                 $(this).append(this.canvas);
-                //get the context
-                this.ctx = this.canvas.get(0).getContext("2d");
                 
                 //NODES
                 // create root node
