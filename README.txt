@@ -1,7 +1,6 @@
 js-mindmap
 
-Kenneth Kufluk
-Digitas London 2008/09
+Kenneth Kufluk 2008/09/10
 
 This code is provided at:
 http://code.google.com/p/js-mindmap
