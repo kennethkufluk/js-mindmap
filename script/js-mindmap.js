@@ -14,7 +14,6 @@
 // When activity stops, stop the loop (for performance)
 // Resize event
 
-// Known issue - canvas not appearing in IE...
 
 (function($){
 
@@ -285,7 +284,10 @@
         var Loop = function (obj){
             var nodes = obj.nodes;
             var lines = obj.lines;
-            obj.ctx = $('canvas', obj).get(0).getContext("2d");
+            var canvas = $('canvas', obj).get(0);
+            if (typeof G_vmlCanvasManager != 'undefined') canvas=G_vmlCanvasManager.initElement(canvas);
+            obj.ctx = canvas.getContext("2d");
+
 
             obj.ctx.clearRect(0, 0, options.mapArea.x, options.mapArea.y);
             //update node positions
