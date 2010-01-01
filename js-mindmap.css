@@ -4,7 +4,7 @@
 	#debug1 {
 		display:block;
 	}
-	.js-mindmap .node {
+	.js-mindmap-active .node {
 		position:absolute;
 		top:0;
 		left:0;
@@ -23,19 +23,19 @@
 		list-style:none;
         width:100px;
 	}
-	.js-mindmap .node  a{
+	.js-mindmap-active .node  a{
 		color:#003258;
 	}
-	.js-mindmap .node.active{
+	.js-mindmap-active .node.active{
 		background:#EAEFF5;
 		color:#003258;
 		font-weight:bold;
 		z-index:1000;
 	}
-	.js-mindmap .node.active  a{
+	.js-mindmap-active .node.active  a{
 		color:#003258;
 	}
-	.js-mindmap img.line {
+	.js-mindmap-active img.line {
 		position:absolute;
 		width:200px;
 		height:133px;
