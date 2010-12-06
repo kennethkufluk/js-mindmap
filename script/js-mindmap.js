@@ -34,7 +34,8 @@
             maxForce: 0.1,
             showSublines: true,
             updateIterationCount: 20,
-            showProgressive: true
+            showProgressive: true,
+			addActionArea: true
         },options);
     
         // Define all Node related functions.
@@ -42,10 +43,6 @@
             this.obj = obj;
         	this.el = $(el);
         	this.el.mindMapObj = this;
-            if (active) {
-                obj.activeNode = this;
-                $(this.el).addClass('active');
-            }
             this.parent = parent;
             this.el.addClass('node');
             this.index = index;
@@ -53,6 +50,10 @@
             this.hasLayout = true;
             this.x = Math.random()+(options.mapArea.x/2);
             this.y = Math.random()+(options.mapArea.y/2);
+			if (parent===null) {
+                obj.activeNode = this;
+                $(this.el).addClass('active');
+            }
         	this.el.css('left', this.x + "px");
         	this.el.css('top', this.y + "px");
             this.dx = 0;
@@ -67,6 +68,12 @@
             }
     
             var thisnode = this;
+			
+			// Set up event handler if the Mindmap Node action is clicked
+			$(">.node-action", this.el).click(function(){
+				thisnode.insertMindmapNode(); return false;
+			});
+
             this.el.click(function(){
  //               console.log(obj.activeNode);
                 if (obj.activeNode) obj.activeNode.el.removeClass('active');
@@ -81,6 +88,17 @@
             });
         }
     
+		// Public member function which adds a new Mindmap Node as a child of
+		// the this node.
+		// Current asks for text via "prompt" mechanism, can be improved.
+        Node.prototype.insertMindmapNode = function(){
+			var newtext = prompt("Please enter text of new node");
+			var newNodeLI = $("<li>"+newtext+"</li>");
+			insertMindmapNode(this.obj, newNodeLI, this);
+
+			return false;
+        }
+	
         //TODO: Write this method!
         Node.prototype.layOutChildren = function(){
         //show my child nodes in an equally spaced group around myself, instead of placing them randomly
@@ -101,21 +119,14 @@
                 var y1 = (nodes[i].y - this.y);
                 //adjust for variable node size
     //		var nodewidths = (($(nodes[i]).width() + $(this.el).width())/2);
-                var xsign = x1 / Math.abs(x1);
-                var ysign = y1 / Math.abs(y1);
                 var dist = Math.sqrt((x1 * x1) + (y1 * y1));
-                var theta = Math.atan(y1 / x1);
-                if (x1 == 0) {
-                    theta = Math.PI / 2;
-                    xsign = 0;
-                }
                 // force is based on radial distance
                 var myrepulse = options.repulse;
                 if (this.parent==nodes[i]) myrepulse=myrepulse*10;  //parents stand further away
                 var f = (myrepulse * 500) / (dist * dist);
                 if (Math.abs(dist) < 500) {
-                    fx += -f * Math.cos(theta) * xsign;
-                    fy += -f * Math.sin(theta) * xsign;
+                    fx += -f * x1 / dist;
+                    fy += -f * y1 / dist;
                 }
             }
             // add repulsive force of the "walls"
@@ -147,17 +158,11 @@
                 var x1 = (otherend.x - this.x);
                 var y1 = (otherend.y - this.y);
                 var dist = Math.sqrt((x1 * x1) + (y1 * y1));
-                var xsign = x1 / Math.abs(x1);
-                var theta = Math.atan(y1 / x1);
-                if (x1==0) {
-                    theta = Math.PI / 2;
-                    xsign = 0;
-                }
                 // force is based on radial distance
                 var f = (options.attract * dist) / 10000;
                 if (Math.abs(dist) > 0) {
-                    fx += f * Math.cos(theta) * xsign;
-                    fy += f * Math.sin(theta) * xsign;
+                    fx += f * x1 / dist;
+                    fy += f * y1 / dist;
                 }
             }
     
@@ -168,17 +173,11 @@
                 var x1 = ((otherend.x / 2) - 100 - this.x);
                 var y1 = ((otherend.y / 2) - this.y);
                 var dist = Math.sqrt((x1 * x1) + (y1 * y1));
-                var xsign = x1 / Math.abs(x1);
-                var theta = Math.atan(y1 / x1);
-                if (x1 == 0) {
-                    theta = Math.PI / 2;
-                    xsign = 0;
-                }
                 // force is based on radial distance
                 var f = (0.1 * options.attract*dist) / 10000;
                 if (Math.abs(dist) > 0) {
-                    fx += f * Math.cos(theta) * xsign;
-                    fy += f * Math.sin(theta) * xsign;
+                    fx += f * x1 / dist;
+                    fy += f * y1 / dist;
                 }
             }
     
@@ -328,33 +327,39 @@
             
         }
     
-        // This Helper adds the UL into the mindmap
-        function addList(obj, ul, parent){
+ 
+         // This Helper adds the UL into the mindmap
+        function insertMindmapNode(obj, nodeLI, MindmapParentNode){
             var nodes = obj.nodes;
             var lines = obj.lines;
-            
-            // For each LI in this list
-            $('>li', ul).each(function(index) {
 
-                // Add as a new Node
-                var nodeno = nodes.length;
-                nodes[nodeno] = new Node(obj, nodeno, this, parent);
-//                console.log(this);
-                this.mindmapNode = nodes[nodeno];
-                
-                // Add subtrees
-                $('>ul', this).each(function(index) {
-                    addList(obj, this, nodes[nodeno]);
-                });
-                
-                // Add Relationship between Nodes (draw a line)
-                if (parent != null) {
-                    var lineno = lines.length;
-                    lines[lineno] = new Line(obj, lineno, nodes[nodeno], parent);
-                }
-            });
-        }
-    
+            var nodeno = nodes.length;
+			
+			// Add Mindmap Node action mechanism
+			if (options.addActionArea)
+				$(nodeLI).append("<div class=node-action>[+]</div>");
+
+			// function MindmapNode(topDOMobj, index, DOMelement, MindmapParentNode){
+            nodes[nodeno] = new Node(obj, nodeno, nodeLI, MindmapParentNode);
+            nodeLI.mindmapNode = nodes[nodeno];
+
+
+			var thisnode = nodes[nodeno];
+			
+            // For each LI in this list
+			if (MindmapParentNode != null) {
+				var lineno = lines.length;
+				lines[lineno] = new Line(obj, lineno, thisnode, MindmapParentNode);
+			}
+
+			// Add subtrees recursively
+			$('>li', $(">ul",nodeLI)).each(function(index, _node) {
+				insertMindmapNode(obj, _node, thisnode);
+			});
+		
+			$("#js-mindmap").append(nodeLI);
+
+	}
         
         return this.each(function() {
 
@@ -385,31 +390,17 @@
                 
                 //NODES
                 // create root node
-                var myroot = $("a", this).get(0);
-                var nodeno = nodes.length;
-                nodes[nodeno] = new Node(this, nodeno, myroot, null, true);
-    
-                // build the tree
-                var myul = $("ul", this).get(0);
-                addList(this, myul, nodes[nodeno]);
-
-                // Flatten LIs
-                $('li', myul).each(function(index) {
-                    // Move each LI to the root of the UL
-                    // We do this because of the cascading positioning of LIs
-                    // If I put an LI at (10, 10), all child UL>LIs will also be offset
-                    // so we move everything into the root UL
-                    $(myul).append(this);
-                });
+                var rootLI = $("#js-mindmap-src li").get(0);
+				insertMindmapNode(this, rootLI, null);
 
                 // Add additional lines described by rel="id id id"
                 var obj = this;
-                $('li>a[rel]',myul).each(function() {
+                $('#js-mindmap li[rel]').each(function() {
                     var rel = $(this).attr('rel');
-                    var currentNode = $(this).parent()[0].mindmapNode;
+                    var currentNode = $(this)[0].mindmapNode;
                     $.each(rel.split(' '), function(index) {
 //                        console.log(this);
-                        var parentNode = $('#'+this).parent()[0].mindmapNode;
+                        var parentNode = $('#'+this)[0].mindmapNode;
                         var lineno = lines.length;
                         lines[lineno] = new Line(obj, lineno, currentNode, parentNode);
                         
