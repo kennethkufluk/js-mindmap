@@ -59,6 +59,10 @@
             this.dx = 0;
             this.dy = 0;
             this.count = 0;
+			this.level = 0;
+			
+			if (parent)
+			  this.level = parent.level + 1;
             
             this.el.draggable();
             this.el.css('position','absolute');        
@@ -111,76 +115,80 @@
             var nodes = this.obj.nodes;
             var lines = this.obj.lines;
 
-            for (var i = 0; i < nodes.length; i++) {
-                if (i == this.index) continue;
-                if ((options.showSublines && !nodes[i].hasLayout) || (!options.showSublines && !nodes[i].visible)) continue;
-                // Repulsive force (coulomb's law)
-                var x1 = (nodes[i].x - this.x);
-                var y1 = (nodes[i].y - this.y);
-                //adjust for variable node size
-    //		var nodewidths = (($(nodes[i]).width() + $(this.el).width())/2);
-                var dist = Math.sqrt((x1 * x1) + (y1 * y1));
-                // force is based on radial distance
-                var myrepulse = options.repulse;
-                if (this.parent==nodes[i]) myrepulse=myrepulse*10;  //parents stand further away
-                var f = (myrepulse * 500) / (dist * dist);
-                if (Math.abs(dist) < 500) {
-                    fx += -f * x1 / dist;
-                    fy += -f * y1 / dist;
-                }
-            }
-            // add repulsive force of the "walls"
-            //left wall
-            var xdist = this.x + $(this.el).width();
-            var f = (options.wallrepulse * 500) / (xdist * xdist);
-            fx += Math.min(2, f);
-            //right wall
-            var rightdist = (options.mapArea.x - xdist);
-            var f = -(options.wallrepulse * 500) / (rightdist * rightdist);
-            fx += Math.max(-2, f);
-            //top wall
-            var f = (options.wallrepulse * 500) / (this.y * this.y);
-            fy += Math.min(2, f);
-            //botttom wall
-            var bottomdist = (options.mapArea.y - this.y);
-            var f = -(options.wallrepulse * 500) / (bottomdist * bottomdist);
-            fy += Math.max(-2, f);
-    
-            // for each line, of which I'm a part, add an attractive force.
-            for (var i = 0; i < lines.length; i++) {
-                var otherend = null;
-                if (lines[i].start.index == this.index) {
-                    otherend = lines[i].end;
-                } else if (lines[i].end.index == this.index) {
-                    otherend = lines[i].start;
-                } else continue;
-                // Attractive force (hooke's law)
-                var x1 = (otherend.x - this.x);
-                var y1 = (otherend.y - this.y);
-                var dist = Math.sqrt((x1 * x1) + (y1 * y1));
-                // force is based on radial distance
-                var f = (options.attract * dist) / 10000;
-                if (Math.abs(dist) > 0) {
-                    fx += f * x1 / dist;
-                    fy += f * y1 / dist;
-                }
-            }
-    
+            if (this.obj.activeNode !== this) {
+				// Compute repulsive force from all other elements
+				for (var i = 0; i < nodes.length; i++) {
+					if (i == this.index) continue;
+					if ((options.showSublines && !nodes[i].hasLayout) || (!options.showSublines && !nodes[i].visible)) continue;
+					// Repulsive force (coulomb's law)
+					var x1 = (nodes[i].x - this.x);
+					var y1 = (nodes[i].y - this.y);
+					//adjust for variable node size
+		//		var nodewidths = (($(nodes[i]).width() + $(this.el).width())/2);
+					var dist = Math.sqrt((x1 * x1) + (y1 * y1));
+					// force is based on radial distance
+					var myrepulse = options.repulse;
+					if (this.parent && this.parent==nodes[i]) myrepulse=myrepulse*10;  //parents stand further away
+					var f = (myrepulse * 500) / (dist * dist);
+					if (Math.abs(dist) < 500) {
+						fx += -f * x1 / dist;
+						fy += -f * y1 / dist;
+					}
+				}
+				// add repulsive force of the "walls"
+				//left wall
+				var xdist = this.x + $(this.el).width();
+				var f = (options.wallrepulse * 500) / (xdist * xdist);
+				fx += Math.min(2, f);
+				//right wall
+				var rightdist = (options.mapArea.x - xdist);
+				var f = -(options.wallrepulse * 500) / (rightdist * rightdist);
+				fx += Math.max(-2, f);
+				//top wall
+				var f = (options.wallrepulse * 500) / (this.y * this.y);
+				fy += Math.min(2, f);
+				//botttom wall
+				var bottomdist = (options.mapArea.y - this.y);
+				var f = -(options.wallrepulse * 500) / (bottomdist * bottomdist);
+				fy += Math.max(-2, f);
+		
+				// for each line, of which I'm a part, add an attractive force.
+				for (var i = 0; i < lines.length; i++) {
+					var otherend = null;
+					if (lines[i].start.index == this.index) {
+						otherend = lines[i].end;
+					} else if (lines[i].end.index == this.index) {
+						otherend = lines[i].start;
+					} else continue;
+					// Attract only if visible
+					if (otherend.visible) {
+						// Attractive force (hooke's law)
+						var x1 = (otherend.x - this.x);
+						var y1 = (otherend.y - this.y);
+						var dist = Math.sqrt((x1 * x1) + (y1 * y1));
+						// force is based on radial distance
+						var f = (options.attract * dist) / 10000;
+						if (Math.abs(dist) > 0) {
+							fx += f * x1 / dist;
+							fy += f * y1 / dist;
+						}
+					}
+				}
+			} else {
             // if I'm active, attract me to the centre of the area
-            if (this.obj.activeNode === this) {
                 // Attractive force (hooke's law)
                 var otherend = options.mapArea;
                 var x1 = ((otherend.x / 2) - 100 - this.x);
                 var y1 = ((otherend.y / 2) - this.y);
                 var dist = Math.sqrt((x1 * x1) + (y1 * y1));
                 // force is based on radial distance
-                var f = (0.1 * options.attract*dist) / 10000;
+                var f = (1 * options.attract*dist) / 10000;
                 if (Math.abs(dist) > 0) {
                     fx += f * x1 / dist;
                     fy += f * y1 / dist;
                 }
-            }
-    
+			}
+
             if (Math.abs(fx) > options.maxForce) fx = options.maxForce * (fx / Math.abs(fx));
             if (Math.abs(fy) > options.maxForce) fy = options.maxForce * (fy / Math.abs(fy));
             return {
