@@ -34,7 +34,8 @@
             maxForce: 0.1,
             showSublines: true,
             updateIterationCount: 20,
-            showProgressive: true
+            showProgressive: true,
+			addActionArea: true
         },options);
     
         // Define all Node related functions.
@@ -42,10 +43,6 @@
             this.obj = obj;
         	this.el = $(el);
         	this.el.mindMapObj = this;
-            if (active) {
-                obj.activeNode = this;
-                $(this.el).addClass('active');
-            }
             this.parent = parent;
             this.el.addClass('node');
             this.index = index;
@@ -53,11 +50,20 @@
             this.hasLayout = true;
             this.x = Math.random()+(options.mapArea.x/2);
             this.y = Math.random()+(options.mapArea.y/2);
+			if (parent===null) {
+                obj.activeNode = this;
+                $(this.el).addClass('active');
+            }
         	this.el.css('left', this.x + "px");
         	this.el.css('top', this.y + "px");
             this.dx = 0;
             this.dy = 0;
             this.count = 0;
+			this.level = 0;
+			this.opacity = 0.9;
+			
+			if (parent)
+			  this.level = parent.level + 1;
             
             this.el.draggable();
             this.el.css('position','absolute');        
@@ -67,10 +73,18 @@
             }
     
             var thisnode = this;
+			
+			// Set up event handler if the Mindmap Node action is clicked
+			$(">.node-action", this.el).click(function(){
+				thisnode.insertMindmapNode(); return false;
+			});
+
             this.el.click(function(){
  //               console.log(obj.activeNode);
                 if (obj.activeNode) obj.activeNode.el.removeClass('active');
-                obj.activeNode = thisnode;
+				thisnode.setActiveNode(thisnode);
+                /*obj.activeNode = thisnode;
+				setActiveBranch(obj.activeNode,false);*/
                 obj.activeNode.el.addClass('active');
                 return false;
             });
@@ -80,7 +94,31 @@
                 return false;
             });
         }
-    
+
+		Node.prototype.setActiveNode = function(node) {
+			// first unset active branch
+			var tmp=this.obj.activeNode;
+			while (tmp=tmp.parent) {
+				tmp.activeBranch=false;
+			}
+			tmp=node;
+			while (tmp=tmp.parent) {
+				tmp.activeBranch=true;
+			}
+			this.obj.activeNode=node;
+		}
+		
+		// Public member function which adds a new Mindmap Node as a child of
+		// the this node.
+		// Current asks for text via "prompt" mechanism, can be improved.
+        Node.prototype.insertMindmapNode = function(){
+			var newtext = prompt("Please enter text of new node");
+			var newNodeLI = $("<li>"+newtext+"</li>");
+			insertMindmapNode(this.obj, newNodeLI, this);
+
+			return false;
+        }
+	
         //TODO: Write this method!
         Node.prototype.layOutChildren = function(){
         //show my child nodes in an equally spaced group around myself, instead of placing them randomly
@@ -93,95 +131,98 @@
             var nodes = this.obj.nodes;
             var lines = this.obj.lines;
 
-            for (var i = 0; i < nodes.length; i++) {
-                if (i == this.index) continue;
-                if ((options.showSublines && !nodes[i].hasLayout) || (!options.showSublines && !nodes[i].visible)) continue;
-                // Repulsive force (coulomb's law)
-                var x1 = (nodes[i].x - this.x);
-                var y1 = (nodes[i].y - this.y);
-                //adjust for variable node size
-    //		var nodewidths = (($(nodes[i]).width() + $(this.el).width())/2);
-                var xsign = x1 / Math.abs(x1);
-                var ysign = y1 / Math.abs(y1);
-                var dist = Math.sqrt((x1 * x1) + (y1 * y1));
-                var theta = Math.atan(y1 / x1);
-                if (x1 == 0) {
-                    theta = Math.PI / 2;
-                    xsign = 0;
-                }
-                // force is based on radial distance
-                var myrepulse = options.repulse;
-                if (this.parent==nodes[i]) myrepulse=myrepulse*10;  //parents stand further away
-                var f = (myrepulse * 500) / (dist * dist);
-                if (Math.abs(dist) < 500) {
-                    fx += -f * Math.cos(theta) * xsign;
-                    fy += -f * Math.sin(theta) * xsign;
-                }
-            }
-            // add repulsive force of the "walls"
-            //left wall
-            var xdist = this.x + $(this.el).width();
-            var f = (options.wallrepulse * 500) / (xdist * xdist);
-            fx += Math.min(2, f);
-            //right wall
-            var rightdist = (options.mapArea.x - xdist);
-            var f = -(options.wallrepulse * 500) / (rightdist * rightdist);
-            fx += Math.max(-2, f);
-            //top wall
-            var f = (options.wallrepulse * 500) / (this.y * this.y);
-            fy += Math.min(2, f);
-            //botttom wall
-            var bottomdist = (options.mapArea.y - this.y);
-            var f = -(options.wallrepulse * 500) / (bottomdist * bottomdist);
-            fy += Math.max(-2, f);
-    
-            // for each line, of which I'm a part, add an attractive force.
-            for (var i = 0; i < lines.length; i++) {
-                var otherend = null;
-                if (lines[i].start.index == this.index) {
-                    otherend = lines[i].end;
-                } else if (lines[i].end.index == this.index) {
-                    otherend = lines[i].start;
-                } else continue;
-                // Attractive force (hooke's law)
-                var x1 = (otherend.x - this.x);
-                var y1 = (otherend.y - this.y);
-                var dist = Math.sqrt((x1 * x1) + (y1 * y1));
-                var xsign = x1 / Math.abs(x1);
-                var theta = Math.atan(y1 / x1);
-                if (x1==0) {
-                    theta = Math.PI / 2;
-                    xsign = 0;
-                }
-                // force is based on radial distance
-                var f = (options.attract * dist) / 10000;
-                if (Math.abs(dist) > 0) {
-                    fx += f * Math.cos(theta) * xsign;
-                    fy += f * Math.sin(theta) * xsign;
-                }
-            }
-    
+			if (this.obj.activeNode == this) {
             // if I'm active, attract me to the centre of the area
-            if (this.obj.activeNode === this) {
                 // Attractive force (hooke's law)
                 var otherend = options.mapArea;
                 var x1 = ((otherend.x / 2) - 100 - this.x);
                 var y1 = ((otherend.y / 2) - this.y);
                 var dist = Math.sqrt((x1 * x1) + (y1 * y1));
-                var xsign = x1 / Math.abs(x1);
-                var theta = Math.atan(y1 / x1);
-                if (x1 == 0) {
-                    theta = Math.PI / 2;
-                    xsign = 0;
-                }
                 // force is based on radial distance
-                var f = (0.1 * options.attract*dist) / 10000;
+                var f = (1 * options.attract*dist) / 10000;
                 if (Math.abs(dist) > 0) {
-                    fx += f * Math.cos(theta) * xsign;
-                    fy += f * Math.sin(theta) * xsign;
+                    fx += f * x1 / dist;
+                    fy += f * y1 / dist;
                 }
-            }
-    
+			} else if (this.obj.activeNode.parent == this) {
+            // if I'm on the active branch, attract me to the active parent area
+                // Attractive force (hooke's law)
+                var otherend = options.mapArea;
+                var x1 = ((otherend.x / 4) - 100 - this.x);
+                var y1 = ((otherend.y / 4) - this.y);
+                var dist = Math.sqrt((x1 * x1) + (y1 * y1));
+                // force is based on radial distance
+                var f = (1 * options.attract*dist) / 10000;
+                if (Math.abs(dist) > 0) {
+                    fx += f * x1 / dist;
+                    fy += f * y1 / dist;
+                }
+
+			} else {
+				// Compute repulsive force from all other elements
+				for (var i = 0; i < nodes.length; i++) {
+					if (i == this.index) continue;
+					if ((options.showSublines && !nodes[i].hasLayout) || (!options.showSublines && !nodes[i].visible)) continue;
+					// only force this node if it is a direct sibling, parent of active, 
+					if (nodes[i].parent != this && this.parent != nodes[i] && (!nodes[i].parent || nodes[i].parent.parent != this ) && this.level != nodes[i].level) continue;
+					// Repulsive force (coulomb's law)
+					var x1 = (nodes[i].x - this.x);
+					var y1 = (nodes[i].y - this.y);
+					//adjust for variable node size
+		//		var nodewidths = (($(nodes[i]).width() + $(this.el).width())/2);
+					var dist = Math.sqrt((x1 * x1) + (y1 * y1));
+					// force is based on radial distance
+					var myrepulse = options.repulse;
+					if (this.parent && this.parent==nodes[i]) myrepulse=myrepulse*5;  //parents stand further away
+					if (this==this.obj.activeNode.parent) myrepulse=myrepulse*5;  //parents of active stand further away
+					var f = (myrepulse * 500) / (dist * dist);
+					if (Math.abs(dist) < 500) {
+						fx += -f * x1 / dist;
+						fy += -f * y1 / dist;
+					}
+				}
+				// add repulsive force of the "walls"
+				//left wall
+				var xdist = this.x + $(this.el).width();
+				var f = (options.wallrepulse * 500) / (xdist * xdist);
+				fx += Math.min(2, f);
+				//right wall
+				var rightdist = (options.mapArea.x - xdist);
+				var f = -(options.wallrepulse * 500) / (rightdist * rightdist);
+				fx += Math.max(-2, f);
+				//top wall
+				var f = (options.wallrepulse * 500) / (this.y * this.y);
+				fy += Math.min(2, f);
+				//botttom wall
+				var bottomdist = (options.mapArea.y - this.y);
+				var f = -(options.wallrepulse * 500) / (bottomdist * bottomdist);
+				fy += Math.max(-2, f);
+		
+				// for each line, of which I'm a part, add an attractive force.
+				for (var i = 0; i < lines.length; i++) {
+					var otherend = null;
+					if (lines[i].start.index == this.index) {
+						otherend = lines[i].end;
+					} else if (lines[i].end.index == this.index) {
+						otherend = lines[i].start;
+					} else continue;
+					// Attract only if visible
+					if (otherend.visible) {
+						// Attractive force (hooke's law)
+						var x1 = (otherend.x - this.x);
+						var y1 = (otherend.y - this.y);
+						var dist = Math.sqrt((x1 * x1) + (y1 * y1));
+						// force is based on radial distance
+						var f = (options.attract * dist) / 10000;
+						if (otherend.level == this.level) f /= 10; // weaken sibling attraction
+						if (Math.abs(dist) > 0) {
+							fx += f * x1 / dist;
+							fy += f * y1 / dist;
+						}
+					}
+				}
+			}
+
             if (Math.abs(fx) > options.maxForce) fx = options.maxForce * (fx / Math.abs(fx));
             if (Math.abs(fy) > options.maxForce) fy = options.maxForce * (fy / Math.abs(fy));
             return {
@@ -210,8 +251,8 @@
             //apply accelerations
             var forces = this.getForceVector();
             //			console.log(forces.x);
-            this.dx += forces.x * options.timeperiod;
-            this.dy += forces.y * options.timeperiod;
+            this.dx += this.opacity * forces.x * options.timeperiod;
+            this.dy += this.opacity * forces.y * options.timeperiod;
     
             //TODO: CAP THE FORCES
     
@@ -235,6 +276,9 @@
         	var showy = this.y - ($(this.el).height() / 2);
         	this.el.css('left', showx + "px");
         	this.el.css('top', showy + "px");
+        	this.el.css('opacity', this.opacity);
+        	this.el.css('z-index', this.opacity * 100);
+
         }
     
         // Define all Line related functions.
@@ -258,10 +302,10 @@
             else this.colour = "blue";
             switch (this.colour) {
                 case "red":
-                    this.obj.ctx.strokeStyle = "rgb(100, 0, 0)";
+                    this.obj.ctx.strokeStyle = "rgba(100, 0, 0, " + this.start.opacity * this.start.opacity + ")";
                     break;
                 case "blue":
-                    this.obj.ctx.strokeStyle = "rgba(0, 0, 100, 0.2)";
+                    this.obj.ctx.strokeStyle = "rgba(0, 0, 100, " + this.start.opacity * this.start.opacity + ")";
                     break;
             }
             switch (this.size) {
@@ -269,7 +313,7 @@
                     this.obj.ctx.lineWidth = "3";
                     break;
                 case "thin":
-                    this.obj.ctx.lineWidth = "1";
+                    this.obj.ctx.lineWidth = "3";
                     break;
             }
             this.obj.ctx.beginPath();
@@ -294,7 +338,9 @@
             for (var i = 0; i < nodes.length; i++) {
                 //TODO: replace this temporary idea
                 var childActive = false;
-                var currentNode = obj.activeNode;
+                var activeNode = obj.activeNode;
+				var currentNode = nodes[i];
+				/*
                 while (currentNode.parent && (currentNode = currentNode.parent)) {
                     if (currentNode == nodes[i]) childActive = true;
                 }
@@ -313,7 +359,34 @@
                         nodes[i].hasLayout = true;
                     }
                 }
-                if (nodes[i].visible) {
+				*/
+				if (currentNode == activeNode) { // if this is the currentNode
+					currentNode.visible = true;
+					currentNode.hasLayout = true;
+					currentNode.opacity = 1.0;
+				} else if (currentNode.parent == activeNode){ // if this is a child of active
+					currentNode.visible = true;
+					currentNode.hasLayout = true;
+					currentNode.opacity = 1.0;
+				} else if (currentNode.parent == activeNode.parent){ // if this is a sibling of active
+					currentNode.visible = true;
+					currentNode.hasLayout = true;
+					currentNode.opacity = 0.5;
+				} else if (currentNode.parent && currentNode.parent.parent == activeNode){ // if this is a grandchild
+					currentNode.visible = false;
+					currentNode.hasLayout = true;
+					currentNode.opacity = 0.3;
+				} else if (currentNode.activeBranch) { //along the active branch
+					currentNode.visible = true;
+					currentNode.hasLayout = true;
+					currentNode.opacity = 1.0;
+				} else {
+					currentNode.visible = false;
+					currentNode.hasLayout = false;
+					currentNode.activeBranch = false;
+				}
+
+				if (nodes[i].visible) {
                     nodes[i].el.show();
                 } else {
                     nodes[i].el.hide();
@@ -328,33 +401,39 @@
             
         }
     
-        // This Helper adds the UL into the mindmap
-        function addList(obj, ul, parent){
+ 
+         // This Helper adds the UL into the mindmap
+        function insertMindmapNode(obj, nodeLI, MindmapParentNode){
             var nodes = obj.nodes;
             var lines = obj.lines;
-            
-            // For each LI in this list
-            $('>li', ul).each(function(index) {
 
-                // Add as a new Node
-                var nodeno = nodes.length;
-                nodes[nodeno] = new Node(obj, nodeno, this, parent);
-//                console.log(this);
-                this.mindmapNode = nodes[nodeno];
-                
-                // Add subtrees
-                $('>ul', this).each(function(index) {
-                    addList(obj, this, nodes[nodeno]);
-                });
-                
-                // Add Relationship between Nodes (draw a line)
-                if (parent != null) {
-                    var lineno = lines.length;
-                    lines[lineno] = new Line(obj, lineno, nodes[nodeno], parent);
-                }
-            });
-        }
-    
+            var nodeno = nodes.length;
+			
+			// Add Mindmap Node action mechanism
+			if (options.addActionArea)
+				$(nodeLI).append("<div class=node-action>[+]</div>");
+
+			// function MindmapNode(topDOMobj, index, DOMelement, MindmapParentNode){
+            nodes[nodeno] = new Node(obj, nodeno, nodeLI, MindmapParentNode);
+            nodeLI.mindmapNode = nodes[nodeno];
+
+
+			var thisnode = nodes[nodeno];
+			
+            // For each LI in this list
+			if (MindmapParentNode != null) {
+				var lineno = lines.length;
+				lines[lineno] = new Line(obj, lineno, thisnode, MindmapParentNode);
+			}
+
+			// Add subtrees recursively
+			$('>li', $(">ul",nodeLI)).each(function(index, _node) {
+				insertMindmapNode(obj, _node, thisnode);
+			});
+		
+			$("#js-mindmap").append(nodeLI);
+
+	}
         
         return this.each(function() {
 
@@ -385,31 +464,17 @@
                 
                 //NODES
                 // create root node
-                var myroot = $("a", this).get(0);
-                var nodeno = nodes.length;
-                nodes[nodeno] = new Node(this, nodeno, myroot, null, true);
-    
-                // build the tree
-                var myul = $("ul", this).get(0);
-                addList(this, myul, nodes[nodeno]);
-
-                // Flatten LIs
-                $('li', myul).each(function(index) {
-                    // Move each LI to the root of the UL
-                    // We do this because of the cascading positioning of LIs
-                    // If I put an LI at (10, 10), all child UL>LIs will also be offset
-                    // so we move everything into the root UL
-                    $(myul).append(this);
-                });
+                var rootLI = $("#js-mindmap-src li").get(0);
+				insertMindmapNode(this, rootLI, null);
 
                 // Add additional lines described by rel="id id id"
                 var obj = this;
-                $('li>a[rel]',myul).each(function() {
+                $('#js-mindmap li[rel]').each(function() {
                     var rel = $(this).attr('rel');
-                    var currentNode = $(this).parent()[0].mindmapNode;
+                    var currentNode = $(this)[0].mindmapNode;
                     $.each(rel.split(' '), function(index) {
 //                        console.log(this);
-                        var parentNode = $('#'+this).parent()[0].mindmapNode;
+                        var parentNode = $('#'+this)[0].mindmapNode;
                         var lineno = lines.length;
                         lines[lineno] = new Line(obj, lineno, currentNode, parentNode);
                         

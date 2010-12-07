@@ -21,7 +21,7 @@
 		cursor:hand;
 		z-index:100;
 		list-style:none;
-        width:100px;
+        width:150px;
 	}
 	.js-mindmap-active .node  a{
 		color:#003258;
@@ -47,3 +47,10 @@
     .ui-draggable {
         position:absolute;
     }
+	.js-mindmap-active .node .node-action {
+	  position:absolute;
+	  right:-2em;
+	  bottom:-1px;
+	  text-align:center;
+	  vertical-align:super;
+	}
