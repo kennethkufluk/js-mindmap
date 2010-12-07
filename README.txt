@@ -3,7 +3,7 @@ js-mindmap
 Kenneth Kufluk 2008/09/10
 
 This code is provided at:
-http://code.google.com/p/js-mindmap
+https://github.com/kennethkufluk/js-mindmap
 
 Requires jQuery for basic shortcuts ($) and stuff
 Requires Excanvas for canvas support in IE
