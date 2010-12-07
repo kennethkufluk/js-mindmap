@@ -21,7 +21,7 @@
 		cursor:hand;
 		z-index:100;
 		list-style:none;
-        width:100px;
+        width:150px;
 	}
 	.js-mindmap-active .node  a{
 		color:#003258;
