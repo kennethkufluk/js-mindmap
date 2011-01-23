@@ -50,3 +50,10 @@
     .ui-draggable {
         position:absolute;
     }
+	.js-mindmap-active .node .node-action {
+	  position:absolute;
+	  right:-2em;
+	  bottom:-1px;
+	  text-align:center;
+	  vertical-align:super;
+	}
