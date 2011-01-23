@@ -1,0 +1,63 @@
+js-mindmap
+
+Kenneth Kufluk 2008/09/10/11
+
+This code is provided at:
+http://code.google.com/p/js-mindmap
+
+A demo is provided at:
+
+
+Requires jQuery for basic shortcuts ($) and stuff
+Requires Raphael for drawing.
+
+This code is released under license.  Please leave acknowledgements and copyright messages in the code.
+
+
+WHAT IS THIS?
+-------------
+
+This is a small demo script, intended for fun applications.
+My favourite is this:
+http://www.pcworld.com/misc/edit/195163/index.htm
+
+If you feel like building it out into a massively overfeatured application, please go ahead.  While I've stuck some liberal licensing on it, the basic principles of a force directed layout controlling nodes are as free as the birds in the trees.
+My favourite massively overfeatured application is this:
+http://www.mindjet.com/ (great for meeting notes)
+
+
+HOW THIS WORKS
+--------------
+
+It's relatively easy to build a mindmap.  Take a collection of HTML nodes, and position them absolutely.  Use a Force Directed Layout to link them together and yet keep them apart.
+
+http://en.wikipedia.org/wiki/Force-based_algorithms_(graph_drawing)
+
+Once you've got that, you need to add some filters, to define which nodes are properly connected. All nodes should repel, to prevent overlap, but connected nodes should have a string between them.  This is where you use a springy force (hooke's law) to pull them together.
+
+Drawing lines in HTML is not an easy feat.  IE has/had VML, all browsers (except Android) support SVG (albeit slowly), and all except IE support Canvas.  I tried using a diagonal line in a JPG, stretching it to fit.  It looks daft.  I then switched to Canvas, and now I'm on SVG (using Raphael to support IE VML too).  So it works everywhere except Android.
+
+
+ALTERNATIVES
+------------
+
+Before I wrote this, I used an open-source mindmap written in Flex.  It was beautiful.
+It's here:
+http://www.rubenswieringa.com/blog/interactive-mindmap
+It uses Mark Shepard's SpringGraph component, which has lots of interesting demos:
+http://mark-shepherd.com/blog/springgraph-flex-component/
+
+I considered migrating this component to JS, but found it massively over-complicated for the simple uses I had in mind.
+
+
+APPLICATIONS IN THE WILD
+------------------------
+
+I use this code for my own mindmap website here:
+http://sunshinemisiu.com/
+
+Also, there's a PCWorld page about Google here:
+http://www.pcworld.com/misc/edit/195163/index.htm
+
+Let me know of any others to add here. 
+
