@@ -20,7 +20,8 @@
                     else parentnode=parentnode.mynode;
                 
                 this.mynode = $('body').addNode(parentnode, $('a:eq(0)',this).text(), {
-                    href:$('a:eq(0)',this).text().toLowerCase(),
+//                    href:$('a:eq(0)',this).text().toLowerCase(),
+                    href:$('a:eq(0)',this).attr('href'),
                     onclick:function(node) {
                         $(node.obj.activeNode.content).each(function() {
                             this.hide();
