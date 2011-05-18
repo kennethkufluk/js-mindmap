@@ -113,12 +113,14 @@
         this.el.click(function(){
             if (obj.activeNode) {
                 obj.activeNode.el.removeClass('active');
+                if (obj.activeNode.parent) obj.activeNode.parent.el.removeClass('activeparent');
             }
             if (typeof(opts.onclick)=='function') {
                 opts.onclick(thisnode);
             }
             obj.activeNode = thisnode;
             obj.activeNode.el.addClass('active');
+            if (obj.activeNode.parent) obj.activeNode.parent.el.addClass('activeparent')
             obj.root.animateToStatic();
             return false;
         });
@@ -170,6 +172,19 @@
 
     //Display this node, and its children
     Node.prototype.display = function(depth) {
+        if (this.visible) {
+          // if: I'm not active AND my parent's not active AND my children aren't active ...
+          if (this.obj.activeNode !== this && this.obj.activeNode !== this.parent && this.obj.activeNode.parent !== this) {
+            // TODO hide me!
+            this.el.hide();
+            this.visible = false;
+          }
+        } else {
+          if (this.obj.activeNode === this || this.obj.activeNode === this.parent || this.obj.activeNode.parent === this) {
+            this.el.show();
+            this.visible = true;
+          }
+        }
         if (typeof(depth)=='undefined') depth=0;
         this.drawn = true;
         // am I positioned?  If not, position me.
@@ -412,7 +427,8 @@
     $.fn.addNode = function (parent, name, options) {
         var obj = this[0];
         var node = obj.nodes[obj.nodes.length] = new Node(obj, name, parent, options);
-        obj.animateToStatic();
+        console.log(obj.root);
+        obj.root.animateToStatic();
         return node;
     }
 
@@ -445,7 +461,7 @@
             canvasError: 'alert',
             minSpeed: 0.05,
             maxForce: 0.1,
-            showSublines: true,
+            showSublines: false,
             updateIterationCount: 20,
             showProgressive: true,
             centreOffset:100,
