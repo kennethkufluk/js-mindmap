@@ -3,13 +3,14 @@ js-mindmap
 Kenneth Kufluk 2008/09/10/11
 
 This code is provided at:
-http://code.google.com/p/js-mindmap
+https://github.com/kennethkufluk/js-mindmap
 
 A demo is provided at:
 http://kenneth.kufluk.com/google/js-mindmap/
 
-Requires jQuery for basic shortcuts ($) and stuff
+Requires jQuery for basic shortcuts ($) and stuff.
 Requires Raphael for drawing.
+jQuery UI may be used to allow draggable nodes.
 
 This code is released under license.  Please leave acknowledgements and copyright messages in the code.
 
@@ -59,5 +60,5 @@ http://sunshinemisiu.com/
 Also, there's a PCWorld page about Google here:
 http://www.pcworld.com/misc/edit/195163/index.htm
 
-Let me know of any others to add here. 
+Let me know of any others to add here.
 
