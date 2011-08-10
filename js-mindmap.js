@@ -1,10 +1,10 @@
 /*
  js-mindmap
- 
+
  Copyright (c) 2008/09/10 Kenneth Kufluk http://kenneth.kufluk.com/
- 
+
  MIT (X11) license
-  
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
@@ -71,7 +71,7 @@
         this.el = $('<a href="'+this.href+'">'+this.name+'</a>');
         this.el.addClass('node');
         $('body').prepend(this.el);
-        
+
         if (!parent) {
             obj.activeNode = this;
             $(this.el).addClass('active');
@@ -85,7 +85,7 @@
         if (this.parent) {
             this.parent.children.push(this);
         }
-        
+
         // animation handling
         this.moving = false;
         this.moveTimer = 0;
@@ -97,10 +97,10 @@
         this.dx = 0;
         this.dy = 0;
         this.hasPosition = false;
-        
+
         this.content = []; // array of content elements to display onclick;
-        
-        this.el.css('position','absolute');        
+
+        this.el.css('position','absolute');
 
         var thisnode = this;
 
@@ -143,7 +143,7 @@
         this.obj.movementStopped = false;
         this.animateLoop();
     }
-    
+
     // ROOT NODE ONLY:  animate all nodes (calls itself recursively)
     Node.prototype.animateLoop = function() {
         this.obj.canvas.clear();
@@ -191,22 +191,22 @@
         if (!this.hasPosition) {
             this.x = this.options.mapArea.x/2;
             this.y = this.options.mapArea.y/2;
-        	this.el.css('left', this.x + "px");
-        	this.el.css('top', this.y + "px");
+            this.el.css('left', this.x + "px");
+            this.el.css('top', this.y + "px");
             this.hasPosition=true;
         }
         // are my children positioned?  if not, lay out my children around me
         var stepAngle = Math.PI*2/this.children.length;
-        var parent = this;  
+        var parent = this;
         $.each(this.children, function(index) {
             if (!this.hasPosition) {
                 if (!this.options.showProgressive || depth<=1) {
                     var angle = index * stepAngle;
                     this.x = (50 * Math.cos(angle)) + parent.x;
                     this.y = (50 * Math.sin(angle)) + parent.y;
-                    this.hasPosition=true;           
-                	this.el.css('left', this.x + "px");
-                	this.el.css('top', this.y + "px");
+                    this.hasPosition=true;
+                    this.el.css('left', this.x + "px");
+                    this.el.css('top', this.y + "px");
                 }
             }
         });
@@ -217,13 +217,13 @@
     // updatePosition returns a boolean stating whether it's been static
     Node.prototype.updatePosition = function(){
         if ($(this.el).hasClass("ui-draggable-dragging")) {
-    		this.x = parseInt(this.el.css('left')) + ($(this.el).width() / 2);
-    		this.y = parseInt(this.el.css('top')) + ($(this.el).height() / 2);
-    		this.dx = 0;
-    		this.dy = 0;
-    		return false;
-    	}
-        
+            this.x = parseInt(this.el.css('left')) + ($(this.el).width() / 2);
+            this.y = parseInt(this.el.css('top')) + ($(this.el).height() / 2);
+            this.dx = 0;
+            this.dy = 0;
+            return false;
+        }
+
         //apply accelerations
         var forces = this.getForceVector();
         this.dx += forces.x * this.options.timeperiod;
@@ -243,20 +243,20 @@
         this.x = Math.min(this.options.mapArea.x,Math.max(1,this.x));
         this.y = Math.min(this.options.mapArea.y,Math.max(1,this.y));
         // display
-    	var showx = this.x - ($(this.el).width() / 2);
-    	var showy = this.y - ($(this.el).height() / 2) - 10;
-    	this.el.css('left', showx + "px");
-    	this.el.css('top', showy + "px");
-    	return false;
+        var showx = this.x - ($(this.el).width() / 2);
+        var showy = this.y - ($(this.el).height() / 2) - 10;
+        this.el.css('left', showx + "px");
+        this.el.css('top', showy + "px");
+        return false;
     }
 
     Node.prototype.getForceVector = function(){
         var fx = 0;
         var fy = 0;
-        
+
         var nodes = this.obj.nodes;
         var lines = this.obj.lines;
-        
+
         // Calculate the repulsive force from every other node
         for (var i = 0; i < nodes.length; i++) {
             if (nodes[i] == this) continue;
@@ -266,7 +266,7 @@
             var x1 = (nodes[i].x - this.x);
             var y1 = (nodes[i].y - this.y);
             //adjust for variable node size
-//		var nodewidths = (($(nodes[i]).width() + $(this.el).width())/2);
+//      var nodewidths = (($(nodes[i]).width() + $(this.el).width())/2);
             var xsign = x1 / Math.abs(x1);
             var ysign = y1 / Math.abs(y1);
             var dist = Math.sqrt((x1 * x1) + (y1 * y1));
@@ -362,7 +362,7 @@
         for (var i=0;i<this.children.length;i++) {
             this.children[i].removeNode();
         }
-    
+
         var oldnodes = this.obj.nodes;
         this.obj.nodes = new Array();
         for (var i = 0; i < oldnodes.length; i++) {
@@ -420,10 +420,10 @@
                 break;
         }
 
-        var c = this.obj.canvas.path("M"+this.start.x+' '+this.start.y+"L"+this.end.x+' '+this.end.y).attr({stroke: this.strokeStyle, opacity:0.2, 'stroke-width':'5px'});                
+        var c = this.obj.canvas.path("M"+this.start.x+' '+this.start.y+"L"+this.end.x+' '+this.end.y).attr({stroke: this.strokeStyle, opacity:0.2, 'stroke-width':'5px'});
 
     }
-    
+
     $.fn.addNode = function (parent, name, options) {
         var obj = this[0];
         var node = obj.nodes[obj.nodes.length] = new Node(obj, name, parent, options);
@@ -437,7 +437,7 @@
         this[0].root = node;
         return node;
     }
-    
+
     $.fn.removeNode = function (name) {
         return this.each(function() {
 //            if (!!this.mindmapInit) return false;
@@ -445,7 +445,7 @@
 //            alert(name+' removed');
         });
     }
-    
+
     $.fn.mindmap = function(options) {
         // Define default settings.
         var options = $.extend({
@@ -467,7 +467,7 @@
             centreOffset:100,
             timer: 0
         },options);
-    
+
 
         return this.each(function() {
             var mindmap = this;
@@ -482,7 +482,7 @@
             $(window).resize(function(){
                 mindmap.animateToStatic();
             });
-        
+
             //canvas
             if (options.mapArea.x==-1) {
                 options.mapArea.x = $(window).width();
@@ -492,27 +492,27 @@
             }
             //create drawing area
             this.canvas = Raphael(0, 0, options.mapArea.x, options.mapArea.y);
-            
+
             // Add a class to the object, so that styles can be applied
             $(this).addClass('js-mindmap-active');
-            
+
             // Add keyboard support (thanks to wadefs)
-            $(this).keyup(function(event){ 
-                switch (event.which) { 
-                    case 33: // PgUp 
-                    case 38: // Up, move to parent 
+            $(this).keyup(function(event){
+                switch (event.which) {
+                    case 33: // PgUp
+                    case 38: // Up, move to parent
                         if (mindmap.activeNode.parent) {
                           mindmap.activeNode.parent.el.click();
-                        } 
-                        break; 
-                    case 13: // Enter (change to insert a sibling) 
-                    case 34: // PgDn 
-                    case 40: // Down, move to first child 
-                        if (mindmap.activeNode.children.length) { 
+                        }
+                        break;
+                    case 13: // Enter (change to insert a sibling)
+                    case 34: // PgDn
+                    case 40: // Down, move to first child
+                        if (mindmap.activeNode.children.length) {
                           mindmap.activeNode.children[0].el.click();
-                        } 
-                        break; 
-                    case 37: // Left, move to previous sibling 
+                        }
+                        break;
+                    case 37: // Left, move to previous sibling
                         var activeParent;
                         if (activeParent = mindmap.activeNode.parent) {
                             var newNode = null;
@@ -528,9 +528,9 @@
                             if (newNode) {
                                 newNode.el.click();
                             }
-                        } 
-                        break; 
-                    case 39: // Right, move to next sibling 
+                        }
+                        break;
+                    case 39: // Right, move to next sibling
                         var activeParent;
                         if (activeParent = mindmap.activeNode.parent) {
                             var newNode = null;
@@ -546,20 +546,20 @@
                             if (newNode) {
                                 newNode.el.click();
                             }
-                        } 
-                        break; 
-                    case 45: // Ins, insert a child 
-                        break; 
-                    case 46: // Del, delete this node 
-                        break; 
-                    case 27: // Esc, cancel insert 
-                        break; 
-                    case 83: // 'S', save 
-                        break; 
+                        }
+                        break;
+                    case 45: // Ins, insert a child
+                        break;
+                    case 46: // Del, delete this node
+                        break;
+                    case 27: // Esc, cancel insert
+                        break;
+                    case 83: // 'S', save
+                        break;
                 }
-                return false; 
-            }); 
-            
+                return false;
+            });
+
         });
     };
 })(jQuery);
