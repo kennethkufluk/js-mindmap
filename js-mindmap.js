@@ -273,7 +273,7 @@
     };
 
     Node.prototype.getForceVector = function () {
-        var i, x1, y1, xsign, ysign, dist, theta, f,
+        var i, x1, y1, xsign, dist, theta, f,
             xdist, rightdist, bottomdist, otherend,
             fx = 0,
             fy = 0,
@@ -296,19 +296,19 @@
             y1 = (nodes[i].y - this.y);
             //adjust for variable node size
 //      var nodewidths = (($(nodes[i]).width() + $(this.el).width())/2);
-            xsign = x1 / Math.abs(x1);
-            ysign = y1 / Math.abs(y1);
             dist = Math.sqrt((x1 * x1) + (y1 * y1));
-            theta = Math.atan(y1 / x1);
-            if (x1 === 0) {
-                theta = Math.PI / 2;
-                xsign = 0;
-            }
-            // force is based on radial distance
 //            var myrepulse = this.options.repulse;
 //            if (this.parent==nodes[i]) myrepulse=myrepulse*10;  //parents stand further away
-            f = (this.options.repulse * 500) / (dist * dist);
             if (Math.abs(dist) < 500) {
+                if (x1 === 0) {
+                    theta = Math.PI / 2;
+                    xsign = 0;
+                } else {
+                    theta = Math.atan(y1 / x1);
+                    xsign = x1 / Math.abs(x1);
+                }
+                // force is based on radial distance
+                f = (this.options.repulse * 500) / (dist * dist);
                 fx += -f * Math.cos(theta) * xsign;
                 fy += -f * Math.sin(theta) * xsign;
             }
@@ -349,15 +349,17 @@
             x1 = (otherend.x - this.x);
             y1 = (otherend.y - this.y);
             dist = Math.sqrt((x1 * x1) + (y1 * y1));
-            xsign = x1 / Math.abs(x1);
-            theta = Math.atan(y1 / x1);
-            if (x1 === 0) {
-                theta = Math.PI / 2;
-                xsign = 0;
-            }
-            // force is based on radial distance
-            f = (this.options.attract * dist) / 10000;
             if (Math.abs(dist) > 0) {
+                if (x1 === 0) {
+                    theta = Math.PI / 2;
+                    xsign = 0;
+                }
+                else {
+                    theta = Math.atan(y1 / x1);
+                    xsign = x1 / Math.abs(x1);
+                }
+                // force is based on radial distance
+                f = (this.options.attract * dist) / 10000;
                 fx += f * Math.cos(theta) * xsign;
                 fy += f * Math.sin(theta) * xsign;
             }
@@ -370,15 +372,16 @@
             x1 = ((otherend.x / 2) - this.options.centreOffset - this.x);
             y1 = ((otherend.y / 2) - this.y);
             dist = Math.sqrt((x1 * x1) + (y1 * y1));
-            xsign = x1 / Math.abs(x1);
-            theta = Math.atan(y1 / x1);
-            if (x1 === 0) {
-                theta = Math.PI / 2;
-                xsign = 0;
-            }
-            // force is based on radial distance
-            f = (0.1 * this.options.attract * dist * CENTRE_FORCE) / 1000;
             if (Math.abs(dist) > 0) {
+                if (x1 === 0) {
+                    theta = Math.PI / 2;
+                    xsign = 0;
+                } else {
+                    xsign = x1 / Math.abs(x1);
+                    theta = Math.atan(y1 / x1);
+                }
+                // force is based on radial distance
+                f = (0.1 * this.options.attract * dist * CENTRE_FORCE) / 1000;
                 fx += f * Math.cos(theta) * xsign;
                 fy += f * Math.sin(theta) * xsign;
             }
