@@ -72,14 +72,12 @@
         }
 
         // create the element for display
-        this.el = $('<a href="' + this.href + '">' + this.name + '</a>');
-        this.el.addClass('node');
+        this.el = $('<a href="' + this.href + '">' + this.name + '</a>').addClass('node');
         $('body').prepend(this.el);
 
         if (!parent) {
             obj.activeNode = this;
-            $(this.el).addClass('active');
-            $(this.el).addClass('root');
+            this.el.addClass('active root');
         } else {
             obj.lines[obj.lines.length] = new Line(obj, this, parent);
         }
@@ -206,8 +204,7 @@
         if (!this.hasPosition) {
             this.x = this.options.mapArea.x / 2;
             this.y = this.options.mapArea.y / 2;
-            this.el.css('left', this.x + "px");
-            this.el.css('top', this.y + "px");
+            this.el.css({'left': this.x + "px", 'top': this.y + "px"});
             this.hasPosition = true;
         }
         // are my children positioned?  if not, lay out my children around me
@@ -219,8 +216,7 @@
                     this.x = (50 * Math.cos(angle)) + parent.x;
                     this.y = (50 * Math.sin(angle)) + parent.y;
                     this.hasPosition = true;
-                    this.el.css('left', this.x + "px");
-                    this.el.css('top', this.y + "px");
+                    this.el.css({'left': this.x + "px", 'top': this.y + "px"});
                 }
             }
         });
@@ -232,9 +228,9 @@
     Node.prototype.updatePosition = function () {
         var forces, showx, showy;
 
-        if ($(this.el).hasClass("ui-draggable-dragging")) {
-            this.x = parseInt(this.el.css('left'), 10) + ($(this.el).width() / 2);
-            this.y = parseInt(this.el.css('top'), 10) + ($(this.el).height() / 2);
+        if (this.el.hasClass("ui-draggable-dragging")) {
+            this.x = parseInt(this.el.css('left'), 10) + (this.el.width() / 2);
+            this.y = parseInt(this.el.css('top'), 10) + (this.el.height() / 2);
             this.dx = 0;
             this.dy = 0;
             return false;
@@ -265,10 +261,9 @@
         this.x = Math.min(this.options.mapArea.x, Math.max(1, this.x));
         this.y = Math.min(this.options.mapArea.y, Math.max(1, this.y));
         // display
-        showx = this.x - ($(this.el).width() / 2);
-        showy = this.y - ($(this.el).height() / 2) - 10;
-        this.el.css('left', showx + "px");
-        this.el.css('top', showy + "px");
+        showx = this.x - (this.el.width() / 2);
+        showy = this.y - (this.el.height() / 2) - 10;
+        this.el.css({'left': showx + "px", 'top': showy + "px"});
         return false;
     };
 
@@ -295,7 +290,7 @@
             x1 = (nodes[i].x - this.x);
             y1 = (nodes[i].y - this.y);
             //adjust for variable node size
-//      var nodewidths = (($(nodes[i]).width() + $(this.el).width())/2);
+//      var nodewidths = (($(nodes[i]).width() + this.el.width())/2);
             dist = Math.sqrt((x1 * x1) + (y1 * y1));
 //            var myrepulse = this.options.repulse;
 //            if (this.parent==nodes[i]) myrepulse=myrepulse*10;  //parents stand further away
@@ -316,7 +311,7 @@
 
         // add repulsive force of the "walls"
         //left wall
-        xdist = this.x + $(this.el).width();
+        xdist = this.x + this.el.width();
         f = (this.options.wallrepulse * 500) / (xdist * xdist);
         fx += Math.min(2, f);
         //right wall
@@ -426,7 +421,7 @@
             this.obj.lines.push(oldlines[i]);
         }
 
-        $(this.el).remove();
+        this.el.remove();
     };
 
 
@@ -515,6 +510,7 @@
             timer: 0
         }, options);
 
+        var $window = $(window);
 
         return this.each(function () {
             var mindmap = this;
@@ -527,16 +523,16 @@
             this.animateToStatic = function () {
                 this.root.animateToStatic();
             };
-            $(window).resize(function () {
+            $window.resize(function () {
                 mindmap.animateToStatic();
             });
 
             //canvas
             if (options.mapArea.x === -1) {
-                options.mapArea.x = $(window).width();
+                options.mapArea.x = $window.width();
             }
             if (options.mapArea.y === -1) {
-                options.mapArea.y = $(window).height();
+                options.mapArea.y = $window.height();
             }
             //create drawing area
             this.canvas = Raphael(0, 0, options.mapArea.x, options.mapArea.y);
