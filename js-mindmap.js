@@ -183,6 +183,8 @@
             stepAngle,
             angle;
 
+        depth = depth || 0;
+
         if (this.visible) {
             // if: I'm not active AND my parent's not active AND my children aren't active ...
             if (this.obj.activeNode !== this && this.obj.activeNode !== this.parent && this.obj.activeNode.parent !== this) {
@@ -195,9 +197,6 @@
                 this.el.show();
                 this.visible = true;
             }
-        }
-        if (typeof depth === 'undefined') {
-            depth = 0;
         }
         this.drawn = true;
         // am I positioned?  If not, position me.
