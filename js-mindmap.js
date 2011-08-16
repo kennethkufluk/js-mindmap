@@ -94,7 +94,6 @@
         this.moveTimer = 0;
         this.obj.movementStopped = false;
         this.visible = true;
-        this.hasLayout = true;
         this.x = 1;
         this.y = 1;
         this.dx = 0;
@@ -285,9 +284,6 @@
             if (nodes[i] === this) {
                 continue;
             }
-            if (this.options.showSublines && !nodes[i].hasLayout) {
-                continue;
-            }
             if (!nodes[i].visible) {
                 continue;
             }
@@ -439,9 +435,6 @@
     };
 
     Line.prototype.updatePosition = function () {
-        if (this.options.showSublines && (!this.start.hasLayout || !this.end.hasLayout)) {
-            return;
-        }
         if (!this.options.showSublines && (!this.start.visible || !this.end.visible)) {
             return;
         }
