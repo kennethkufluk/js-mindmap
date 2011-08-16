@@ -441,22 +441,6 @@
         this.size = (this.start.visible && this.end.visible) ? "thick" : "thin";
         this.color = (this.obj.activeNode.parent === this.start || this.obj.activeNode.parent === this.end) ? "red" : "blue";
         this.strokeStyle = "#FFF";
-        switch (this.colour) {
-        case "red":
-//                    this.strokeStyle = "rgba(50, 50, 50, 0.6)";
-            break;
-        case "blue":
-//                    this.strokeStyle = "rgba(10, 10, 10, 0.2)";
-            break;
-        }
-        switch (this.size) {
-        case "thick":
-//                    this.obj.ctx.lineWidth = "3";
-            break;
-        case "thin":
-//                    this.obj.ctx.lineWidth = "1";
-            break;
-        }
 
         this.obj.canvas.path("M" + this.start.x + ' ' + this.start.y + "L" + this.end.x + ' ' + this.end.y).attr({'stroke': this.strokeStyle, 'opacity': 0.2, 'stroke-width': '5px'});
     };
