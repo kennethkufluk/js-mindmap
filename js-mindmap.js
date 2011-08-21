@@ -72,14 +72,12 @@
         }
 
         // create the element for display
-        this.el = $('<a href="' + this.href + '">' + this.name + '</a>');
-        this.el.addClass('node');
+        this.el = $('<a href="' + this.href + '">' + this.name + '</a>').addClass('node');
         $('body').prepend(this.el);
 
         if (!parent) {
             obj.activeNode = this;
-            $(this.el).addClass('active');
-            $(this.el).addClass('root');
+            this.el.addClass('active root');
         } else {
             obj.lines[obj.lines.length] = new Line(obj, this, parent);
         }
@@ -185,6 +183,8 @@
             stepAngle,
             angle;
 
+        depth = depth || 0;
+
         if (this.visible) {
             // if: I'm not active AND my parent's not active AND my children aren't active ...
             if (this.obj.activeNode !== this && this.obj.activeNode !== this.parent && this.obj.activeNode.parent !== this) {
@@ -198,16 +198,12 @@
                 this.visible = true;
             }
         }
-        if (typeof depth === 'undefined') {
-            depth = 0;
-        }
         this.drawn = true;
         // am I positioned?  If not, position me.
         if (!this.hasPosition) {
             this.x = this.options.mapArea.x / 2;
             this.y = this.options.mapArea.y / 2;
-            this.el.css('left', this.x + "px");
-            this.el.css('top', this.y + "px");
+            this.el.css({'left': this.x + "px", 'top': this.y + "px"});
             this.hasPosition = true;
         }
         // are my children positioned?  if not, lay out my children around me
@@ -219,8 +215,7 @@
                     this.x = (50 * Math.cos(angle)) + parent.x;
                     this.y = (50 * Math.sin(angle)) + parent.y;
                     this.hasPosition = true;
-                    this.el.css('left', this.x + "px");
-                    this.el.css('top', this.y + "px");
+                    this.el.css({'left': this.x + "px", 'top': this.y + "px"});
                 }
             }
         });
@@ -232,9 +227,9 @@
     Node.prototype.updatePosition = function () {
         var forces, showx, showy;
 
-        if ($(this.el).hasClass("ui-draggable-dragging")) {
-            this.x = parseInt(this.el.css('left'), 10) + ($(this.el).width() / 2);
-            this.y = parseInt(this.el.css('top'), 10) + ($(this.el).height() / 2);
+        if (this.el.hasClass("ui-draggable-dragging")) {
+            this.x = parseInt(this.el.css('left'), 10) + (this.el.width() / 2);
+            this.y = parseInt(this.el.css('top'), 10) + (this.el.height() / 2);
             this.dx = 0;
             this.dy = 0;
             return false;
@@ -265,15 +260,14 @@
         this.x = Math.min(this.options.mapArea.x, Math.max(1, this.x));
         this.y = Math.min(this.options.mapArea.y, Math.max(1, this.y));
         // display
-        showx = this.x - ($(this.el).width() / 2);
-        showy = this.y - ($(this.el).height() / 2) - 10;
-        this.el.css('left', showx + "px");
-        this.el.css('top', showy + "px");
+        showx = this.x - (this.el.width() / 2);
+        showy = this.y - (this.el.height() / 2) - 10;
+        this.el.css({'left': showx + "px", 'top': showy + "px"});
         return false;
     };
 
     Node.prototype.getForceVector = function () {
-        var i, x1, y1, xsign, ysign, dist, theta, f,
+        var i, x1, y1, xsign, dist, theta, f,
             xdist, rightdist, bottomdist, otherend,
             fx = 0,
             fy = 0,
@@ -295,20 +289,20 @@
             x1 = (nodes[i].x - this.x);
             y1 = (nodes[i].y - this.y);
             //adjust for variable node size
-//      var nodewidths = (($(nodes[i]).width() + $(this.el).width())/2);
-            xsign = x1 / Math.abs(x1);
-            ysign = y1 / Math.abs(y1);
+//      var nodewidths = (($(nodes[i]).width() + this.el.width())/2);
             dist = Math.sqrt((x1 * x1) + (y1 * y1));
-            theta = Math.atan(y1 / x1);
-            if (x1 === 0) {
-                theta = Math.PI / 2;
-                xsign = 0;
-            }
-            // force is based on radial distance
 //            var myrepulse = this.options.repulse;
 //            if (this.parent==nodes[i]) myrepulse=myrepulse*10;  //parents stand further away
-            f = (this.options.repulse * 500) / (dist * dist);
             if (Math.abs(dist) < 500) {
+                if (x1 === 0) {
+                    theta = Math.PI / 2;
+                    xsign = 0;
+                } else {
+                    theta = Math.atan(y1 / x1);
+                    xsign = x1 / Math.abs(x1);
+                }
+                // force is based on radial distance
+                f = (this.options.repulse * 500) / (dist * dist);
                 fx += -f * Math.cos(theta) * xsign;
                 fy += -f * Math.sin(theta) * xsign;
             }
@@ -316,7 +310,7 @@
 
         // add repulsive force of the "walls"
         //left wall
-        xdist = this.x + $(this.el).width();
+        xdist = this.x + this.el.width();
         f = (this.options.wallrepulse * 500) / (xdist * xdist);
         fx += Math.min(2, f);
         //right wall
@@ -349,15 +343,17 @@
             x1 = (otherend.x - this.x);
             y1 = (otherend.y - this.y);
             dist = Math.sqrt((x1 * x1) + (y1 * y1));
-            xsign = x1 / Math.abs(x1);
-            theta = Math.atan(y1 / x1);
-            if (x1 === 0) {
-                theta = Math.PI / 2;
-                xsign = 0;
-            }
-            // force is based on radial distance
-            f = (this.options.attract * dist) / 10000;
             if (Math.abs(dist) > 0) {
+                if (x1 === 0) {
+                    theta = Math.PI / 2;
+                    xsign = 0;
+                }
+                else {
+                    theta = Math.atan(y1 / x1);
+                    xsign = x1 / Math.abs(x1);
+                }
+                // force is based on radial distance
+                f = (this.options.attract * dist) / 10000;
                 fx += f * Math.cos(theta) * xsign;
                 fy += f * Math.sin(theta) * xsign;
             }
@@ -370,15 +366,16 @@
             x1 = ((otherend.x / 2) - this.options.centreOffset - this.x);
             y1 = ((otherend.y / 2) - this.y);
             dist = Math.sqrt((x1 * x1) + (y1 * y1));
-            xsign = x1 / Math.abs(x1);
-            theta = Math.atan(y1 / x1);
-            if (x1 === 0) {
-                theta = Math.PI / 2;
-                xsign = 0;
-            }
-            // force is based on radial distance
-            f = (0.1 * this.options.attract * dist * CENTRE_FORCE) / 1000;
             if (Math.abs(dist) > 0) {
+                if (x1 === 0) {
+                    theta = Math.PI / 2;
+                    xsign = 0;
+                } else {
+                    xsign = x1 / Math.abs(x1);
+                    theta = Math.atan(y1 / x1);
+                }
+                // force is based on radial distance
+                f = (0.1 * this.options.attract * dist * CENTRE_FORCE) / 1000;
                 fx += f * Math.cos(theta) * xsign;
                 fy += f * Math.sin(theta) * xsign;
             }
@@ -423,7 +420,7 @@
             this.obj.lines.push(oldlines[i]);
         }
 
-        $(this.el).remove();
+        this.el.remove();
     };
 
 
@@ -512,6 +509,7 @@
             timer: 0
         }, options);
 
+        var $window = $(window);
 
         return this.each(function () {
             var mindmap = this;
@@ -524,16 +522,16 @@
             this.animateToStatic = function () {
                 this.root.animateToStatic();
             };
-            $(window).resize(function () {
+            $window.resize(function () {
                 mindmap.animateToStatic();
             });
 
             //canvas
             if (options.mapArea.x === -1) {
-                options.mapArea.x = $(window).width();
+                options.mapArea.x = $window.width();
             }
             if (options.mapArea.y === -1) {
-                options.mapArea.y = $(window).height();
+                options.mapArea.y = $window.height();
             }
             //create drawing area
             this.canvas = Raphael(0, 0, options.mapArea.x, options.mapArea.y);
