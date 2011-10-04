@@ -1,22 +1,22 @@
 body {
-    background:green;
+  background:green;
 }
 .js-mindmap-active a.node {
-    background:red;
-    border: 2px solid white;
-    -webkit-border-top-left-radius: 20px;
-    -webkit-border-bottom-right-radius: 20px;
-    -moz-border-radius-topleft: 20px;
-    -moz-border-radius-bottomright: 20px;
-    border-top-left-radius: 20px;
-    border-bottom-right-radius: 20px;    
+  background:red;
+  border: 2px solid white;
+  -webkit-border-top-left-radius: 20px;
+  -webkit-border-bottom-right-radius: 20px;
+  -moz-border-radius-topleft: 20px;
+  -moz-border-radius-bottomright: 20px;
+  border-top-left-radius: 20px;
+  border-bottom-right-radius: 20px;  
 }
 .js-mindmap-active a.node.active {
-    padding:5px 10px !important;
-    border-width:5px !important;
+  padding:5px 10px !important;
+  border-width:5px !important;
 }
 .js-mindmap-active a.node.activeparent {
-    padding:5px 10px !important;
-    border-width:5px !important;
-    background:#8B0000;
+  padding:5px 10px !important;
+  border-width:5px !important;
+  background:#8B0000;
 }

@@ -1,62 +1,62 @@
-	body {
-	}
-	#debug1 {
-		display:block;
-	}
-	.js-mindmap-active h1 {
-	   display:none;
-	}
-	.js-mindmap-active section h1 {
-	   display:block;
-	}
-	.js-mindmap-active .node {
-		position:absolute;
-		top:0;
-		left:0;
-		font-family:verdana;
-		font-size:11px;
-		color:#003258;
-        opacity:0.9;
-		padding:0 7px;
-		cursor:pointer;
-		cursor:hand;
-		z-index:100;
-		list-style:none;
-	}
-	.js-mindmap-active a.node {
-        font: 30px/34px Arial, sans-serif;
-        font-size:1em;
-        letter-spacing: 0;
-        display:block;
-        color:white;
-        text-align:center;
-        text-decoration:none;
-	}
-	.js-mindmap-active .node.active{
-        font-size:1.5em;
-	}
-	.js-mindmap-active .node.active  a{
-		color:#003258;
-	}
-	.js-mindmap-active .node.activeparent  a{
-		color:#001228;
-	}
-	.js-mindmap-active img.line {
-		position:absolute;
-		width:200px;
-		height:133px;
-		top:0;
-		left:0;
-		display:block;
-		z-index:0;
-	}
-    .ui-draggable {
-        position:absolute;
-    }
-	.js-mindmap-active .node .node-action {
-	  position:absolute;
-	  right:-2em;
-	  bottom:-1px;
-	  text-align:center;
-	  vertical-align:super;
-	}
+body {
+}
+#debug1 {
+  display:block;
+}
+.js-mindmap-active h1 {
+   display:none;
+}
+.js-mindmap-active section h1 {
+   display:block;
+}
+.js-mindmap-active .node {
+  position:absolute;
+  top:0;
+  left:0;
+  font-family:verdana;
+  font-size:11px;
+  color:#003258;
+  opacity:0.9;
+  padding:0 7px;
+  cursor:pointer;
+  cursor:hand;
+  z-index:100;
+  list-style:none;
+}
+.js-mindmap-active a.node {
+  font: 30px/34px Arial, sans-serif;
+  font-size:1em;
+  letter-spacing: 0;
+  display:block;
+  color:white;
+  text-align:center;
+  text-decoration:none;
+}
+.js-mindmap-active .node.active{
+  font-size:1.5em;
+}
+.js-mindmap-active .node.active  a{
+  color:#003258;
+}
+.js-mindmap-active .node.activeparent  a{
+  color:#001228;
+}
+.js-mindmap-active img.line {
+  position:absolute;
+  width:200px;
+  height:133px;
+  top:0;
+  left:0;
+  display:block;
+  z-index:0;
+}
+.ui-draggable {
+  position:absolute;
+}
+.js-mindmap-active .node .node-action {
+  position:absolute;
+  right:-2em;
+  bottom:-1px;
+  text-align:center;
+  vertical-align:super;
+}
