@@ -58,7 +58,8 @@
   var TIMEOUT = 4,  // movement timeout in seconds
     CENTRE_FORCE = 3,  // strength of attraction to the centre by the active node
     Node,
-    Line;
+    Line,
+    MindmapGlobalOptions;
 
   // Define all Node related functions.
   Node = function (obj, name, parent, opts) {
@@ -67,12 +68,14 @@
 
     this.name = name;
     this.href = opts.href;
+    this.cssClass = opts['class'];
+
     if (opts.url) {
       this.url = opts.url;
     }
 
     // create the element for display
-    this.el = $('<a href="' + this.href + '">' + this.name + '</a>').addClass('node');
+    this.el = $('<a href="' + this.href + '">' + this.name + '</a>').addClass('node ' + this.cssClass);
     $('body').prepend(this.el);
 
     if (!parent) {
@@ -437,7 +440,7 @@
     }
     this.size = (this.start.visible && this.end.visible) ? "thick" : "thin";
     this.color = (this.obj.activeNode.parent === this.start || this.obj.activeNode.parent === this.end) ? "red" : "blue";
-    this.strokeStyle = "#FFF";
+    this.strokeStyle = MindmapGlobalOptions.lineColor;
 
     this.obj.canvas.path("M" + this.start.x + ' ' + this.start.y + "L" + this.end.x + ' ' + this.end.y).attr({'stroke': this.strokeStyle, 'opacity': 0.2, 'stroke-width': '5px'});
   };
@@ -483,8 +486,11 @@
       updateIterationCount: 20,
       showProgressive: true,
       centreOffset: 100,
-      timer: 0
+      timer: 0,
+      lineColor: "#FFF"
     }, options);
+
+    MindmapGlobalOptions = options;
 
     var $window = $(window);
 
