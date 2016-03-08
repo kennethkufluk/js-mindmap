@@ -73,7 +73,7 @@
 
     // create the element for display
     this.el = $('<a href="' + this.href + '">' + this.name + '</a>').addClass('node');
-    $('body').prepend(this.el);
+    $(this.options.selector).prepend(this.el);
 
     if (!parent) {
       obj.activeNode = this;
@@ -483,7 +483,8 @@
       updateIterationCount: 20,
       showProgressive: true,
       centreOffset: 100,
-      timer: 0
+      timer: 0,
+      selector: this.selector
     }, options);
 
     var $window = $(window);
