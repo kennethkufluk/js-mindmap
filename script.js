@@ -1,10 +1,10 @@
 // load the mindmap
 $(document).ready(function() {
   // enable the mindmap in the body
-  $('body').mindmap();
+  $('div#container').mindmap();
 
   // add the data to the mindmap
-  var root = $('body>ul>li').get(0).mynode = $('body').addRootNode($('body>ul>li>a').text(), {
+  var root = $('div#container>ul>li').get(0).mynode = $('div#container').addRootNode($('div#container>ul>li>a').text(), {
     href:'/',
     url:'/',
     onclick:function(node) {
@@ -13,13 +13,13 @@ $(document).ready(function() {
       });
     }
   });
-  $('body>ul>li').hide();
+  $('div#container>ul>li').hide();
   var addLI = function() {
     var parentnode = $(this).parents('li').get(0);
     if (typeof(parentnode)=='undefined') parentnode=root;
       else parentnode=parentnode.mynode;
     
-    this.mynode = $('body').addNode(parentnode, $('a:eq(0)',this).text(), {
+    this.mynode = $('div#container').addNode(parentnode, $('a:eq(0)',this).text(), {
 //          href:$('a:eq(0)',this).text().toLowerCase(),
       href:$('a:eq(0)',this).attr('href'),
       onclick:function(node) {
@@ -34,7 +34,7 @@ $(document).ready(function() {
     $(this).hide();
     $('>ul>li', this).each(addLI);
   };
-  $('body>ul>li>ul').each(function() { 
+  $('div#container>ul>li>ul').each(function() {
     $('>li', this).each(addLI);
   });
 
